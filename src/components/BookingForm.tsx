@@ -56,6 +56,15 @@ export default function BookingForm({ services, staff, initialServiceId }: Props
     [services]
   );
 
+  const categoryGroups = useMemo(() => groupServicesByCategory(bookableServices), [bookableServices]);
+  const [openCategory, setOpenCategory] = useState(() => {
+    if (initialServiceId) {
+      const match = bookableServices.find((s) => s.id === initialServiceId);
+      if (match) return match.category;
+    }
+    return categoryGroups[0]?.category ?? "";
+  });
+
   // Optional extras offered once a main service is chosen: Add-On Services
   // items, plus Hair Care & Treatments (which is also independently
   // bookable). Never offer the currently-selected main service as an addon
@@ -72,6 +81,9 @@ export default function BookingForm({ services, staff, initialServiceId }: Props
   function toggleAddon(id: string) {
     setAddonIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
+
+  const [openAddonCategory, setOpenAddonCategory] = useState("");
+  const addonGroups = useMemo(() => groupServicesByCategory(addonOptions), [addonOptions]);
 
   const [fee, setFee] = useState<FeeBreakdown | null>(null);
 
@@ -156,33 +168,43 @@ export default function BookingForm({ services, staff, initialServiceId }: Props
           <legend className="mb-3 text-xs uppercase tracking-widest2 text-wine-500">
             1. Choose a service
           </legend>
-          <div className="space-y-6">
-            {groupServicesByCategory(bookableServices).map((group) => (
-              <div key={group.category}>
-                <p className="mb-2 text-sm font-medium text-ink/70">
-                  {group.category}
-                </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {group.items.map((s) => (
-                    <button
-                      type="button"
-                      key={s.id}
-                      onClick={() => setServiceId(s.id)}
-                      className={`focus-ring rounded-xl border p-4 text-left transition ${
-                        serviceId === s.id
-                          ? "border-crown-400 bg-crown-50 ring-1 ring-crown-400"
-                          : "border-ink/10 hover:border-ink/30"
-                      }`}
-                    >
-                      <p className="font-display">{s.name}</p>
-                      <p className="mt-1 text-xs text-ink/50">
-                        {s.duration_minutes} min · {displayPrice(s)}
-                      </p>
-                    </button>
-                  ))}
+          <div className="space-y-2">
+            {categoryGroups.map((group) => {
+              const isOpen = openCategory === group.category;
+              return (
+                <div key={group.category} className="rounded-xl border border-ink/10 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setOpenCategory(isOpen ? "" : group.category)}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-ink/5 transition"
+                  >
+                    <span>{group.category}</span>
+                    <span className="text-ink/40 text-xs">{isOpen ? "▲" : "▼"}</span>
+                  </button>
+                  {isOpen && (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 p-4 pt-2 border-t border-ink/10">
+                      {group.items.map((s) => (
+                        <button
+                          type="button"
+                          key={s.id}
+                          onClick={() => setServiceId(s.id)}
+                          className={`focus-ring rounded-xl border p-4 text-left transition ${
+                            serviceId === s.id
+                              ? "border-crown-400 bg-crown-50 ring-1 ring-crown-400"
+                              : "border-ink/10 hover:border-ink/30"
+                          }`}
+                        >
+                          <p className="font-display">{s.name}</p>
+                          <p className="mt-1 text-xs text-ink/50">
+                            {s.duration_minutes} min · {displayPrice(s)}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </fieldset>
 
@@ -192,29 +214,48 @@ export default function BookingForm({ services, staff, initialServiceId }: Props
             <legend className="mb-3 text-xs uppercase tracking-widest2 text-wine-500">
               2. Add any extras (optional)
             </legend>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {addonOptions.map((a) => {
-                const checked = addonIds.includes(a.id);
+            <div className="space-y-2">
+              {addonGroups.map((group) => {
+                const isOpen = openAddonCategory === group.category;
                 return (
-                  <label
-                    key={a.id}
-                    className={`focus-ring flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${
-                      checked
-                        ? "border-crown-400 bg-crown-50 ring-1 ring-crown-400"
-                        : "border-ink/10 hover:border-ink/30"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleAddon(a.id)}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="font-display">{a.name}</p>
-                      <p className="mt-1 text-xs text-ink/50">{displayPrice(a)}</p>
-                    </div>
-                  </label>
+                  <div key={group.category} className="rounded-xl border border-ink/10 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setOpenAddonCategory(isOpen ? "" : group.category)}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-ink/5 transition"
+                    >
+                      <span>{group.category}</span>
+                      <span className="text-ink/40 text-xs">{isOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {isOpen && (
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 p-4 pt-2 border-t border-ink/10">
+                        {group.items.map((a) => {
+                          const checked = addonIds.includes(a.id);
+                          return (
+                            <label
+                              key={a.id}
+                              className={`focus-ring flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${
+                                checked
+                                  ? "border-crown-400 bg-crown-50 ring-1 ring-crown-400"
+                                  : "border-ink/10 hover:border-ink/30"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleAddon(a.id)}
+                                className="mt-1"
+                              />
+                              <div>
+                                <p className="font-display">{a.name}</p>
+                                <p className="mt-1 text-xs text-ink/50">{displayPrice(a)}</p>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import ConnectStripeButton from "@/components/admin/ConnectStripeButton";
+import BusinessHoursEditor from "@/components/admin/BusinessHoursEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +15,6 @@ export default async function AdminSettingsPage({
     .from("business_hours")
     .select("*")
     .order("day_of_week");
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
     <div className="max-w-2xl space-y-10">
@@ -62,18 +61,10 @@ export default async function AdminSettingsPage({
       <div className="rounded-xl border border-ink/10 bg-white/60 p-6">
         <p className="font-display text-lg">Business hours</p>
         <p className="mt-1 text-sm text-ink/60">
-          Customers can only book within these hours. To change them, update
-          the <code className="text-xs">business_hours</code> table in Supabase.
+          Customers can only book within these hours. Changes take effect immediately.
         </p>
-        <div className="mt-4 divide-y divide-ink/10 text-sm">
-          {(hours ?? []).map((h) => (
-            <div key={h.id} className="flex justify-between py-2">
-              <span>{dayNames[h.day_of_week]}</span>
-              <span className="text-ink/60">
-                {h.is_closed ? "Closed" : `${h.start_time.slice(0, 5)} – ${h.end_time.slice(0, 5)}`}
-              </span>
-            </div>
-          ))}
+        <div className="mt-4">
+          <BusinessHoursEditor initial={hours ?? []} />
         </div>
       </div>
 
