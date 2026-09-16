@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
-import { formatCents, isBookableCategory, slugify } from "@/lib/types";
+import { isBookableCategory, slugify } from "@/lib/types";
 
 export const revalidate = 60;
 
@@ -29,12 +30,12 @@ export default async function HomePage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-ink text-ivory">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 py-24 md:grid-cols-2 md:py-32">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 py-16 md:grid-cols-2 md:py-32">
           <div>
             <p className="mb-4 text-xs uppercase tracking-widest2 text-crown-400">
               Est. for every kind of crown
             </p>
-            <h1 className="font-display text-5xl leading-[1.05] md:text-6xl">
+            <h1 className="font-display text-4xl leading-[1.05] sm:text-5xl md:text-6xl">
               Your hair,
               <br />
               <span className="italic text-crown-400">worn like a crown.</span>
@@ -44,7 +45,7 @@ export default async function HomePage() {
               service online in under two minutes — pay securely, get
               reminders, and walk in ready.
             </p>
-            <div className="mt-8 flex gap-4">
+            <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/book"
                 className="focus-ring rounded-full bg-crown-400 px-7 py-3 text-sm font-medium uppercase tracking-widest2 text-ink transition hover:bg-crown-300"
@@ -59,13 +60,14 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="relative hidden aspect-[4/5] rounded-2xl border border-crown-400/30 md:block">
-            <div className="absolute inset-6 rounded-xl border border-dashed border-crown-400/40" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-display text-8xl italic text-crown-400/30">
-                ♛
-              </span>
-            </div>
+          <div className="relative aspect-[4/5] w-full rounded-2xl border border-crown-400/30 overflow-hidden md:block">
+            <Image
+              src="/images/V2.png"
+              alt="My Hair My Crown"
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
         </div>
       </section>
@@ -93,7 +95,7 @@ export default async function HomePage() {
 
       {/* Services preview */}
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <div className="mb-10 flex items-end justify-between">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-widest2 text-wine-500">
               Signature services
@@ -116,7 +118,7 @@ export default async function HomePage() {
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="text-ink/50">{s.duration_minutes} min</span>
                 <span className="font-medium text-wine-500">
-                  {formatCents(s.price_cents)}
+                  £10 deposit
                 </span>
               </div>
             </Link>

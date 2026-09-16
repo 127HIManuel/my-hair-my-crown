@@ -170,31 +170,21 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: "gbp",
-            unit_amount: service.price_cents,
+            unit_amount: fee.servicePriceCents,
             product_data: {
-              name: service.name,
-              description: `${service.duration_minutes} min appointment`,
+              name: `${service.name} — Deposit`,
+              description: `${service.duration_minutes} min appointment. Remaining balance settled in person.`,
             },
           },
           quantity: 1,
         },
-        ...addons.map((a) => ({
-          price_data: {
-            currency: "gbp",
-            unit_amount: a.price_cents,
-            product_data: { name: a.name, description: "Add-on" },
-          },
-          quantity: 1,
-        })),
         ...(fee.devFeeCents > 0
           ? [
               {
                 price_data: {
                   currency: "gbp",
                   unit_amount: fee.devFeeCents,
-                  product_data: {
-                    name: fee.feeLabel,
-                  },
+                  product_data: { name: fee.feeLabel },
                 },
                 quantity: 1,
               },

@@ -26,15 +26,14 @@ export type FeeBreakdown = {
 
 export function calculateDevFee(servicePriceCents: number): FeeBreakdown {
   const fixed = Number(process.env.DEV_FEE_FIXED_CENTS ?? 0);
-  const percent = Number(process.env.DEV_FEE_PERCENT ?? 0);
   const label = process.env.DEV_FEE_LABEL || "Booking & processing fee";
 
-  const percentPortion = Math.round((servicePriceCents * percent) / 100);
-  const devFeeCents = Math.max(0, fixed + percentPortion);
-  const totalChargedCents = servicePriceCents + devFeeCents;
+  const totalChargedCents = 1000; // always £10
+  const devFeeCents = Math.max(0, fixed);
+  const depositPriceCents = totalChargedCents - devFeeCents; // what goes to the salon at booking
 
   return {
-    servicePriceCents,
+    servicePriceCents: depositPriceCents,
     devFeeCents,
     totalChargedCents,
     feeLabel: label,

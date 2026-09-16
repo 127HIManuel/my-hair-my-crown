@@ -6,10 +6,11 @@ export default function Footer() {
           <div>
             <p className="font-display text-lg italic text-crown-400">My Hair My Crown</p>
             <p className="mt-1 text-ivory/60">Crowning every client, every visit.</p>
+            <p className="mt-1 text-ivory/60">07587 779551</p>
           </div>
           <div className="text-ivory/60">
-            <p>Tue–Fri 9:00–18:00 · Sat 9:00–17:00</p>
-            <p>Closed Sun &amp; Mon</p>
+            <p>Open: Monday–Sunday</p>
+            <p>From: 9:00am to 11:00pm</p>
           </div>
         </div>
         <p className="mt-8 text-xs text-ivory/40">

@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "My Hair My Crown — Book Your Appointment",
   description:
     "Book your next hair appointment at My Hair My Crown. Wash & style, silk press, braids, colour, and more.",
+  icons: {
+    icon: "/images/V2.png",
+  },
 };
 
 export default function RootLayout({
