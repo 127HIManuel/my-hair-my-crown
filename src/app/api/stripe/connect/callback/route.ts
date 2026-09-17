@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 // Stripe redirects here after the salon owner finishes (or exits) onboarding.
 // We re-fetch the account to sync charges_enabled/payouts_enabled immediately,
 // rather than waiting for the account.updated webhook.
