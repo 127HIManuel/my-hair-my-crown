@@ -15,24 +15,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
   }
 
-  let event: Stripe.Event;
+  let event: Stripe.Event | undefined;
   try {
     const secret = process.env.STRIPE_WEBHOOK_SECRET as string;
     const connectSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET as string;
 
-    // Try the connect webhook secret first (account.updated), then fall back
-    // to the platform webhook secret (checkout.session.*).
-    let verified = false;
     for (const s of [connectSecret, secret].filter(Boolean)) {
       try {
         event = stripe.webhooks.constructEvent(rawBody, signature, s);
-        verified = true;
         break;
       } catch {
         // try next secret
       }
     }
-    if (!verified) throw new Error("No matching webhook secret");
+    if (!event) throw new Error("No matching webhook secret");
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
@@ -40,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  switch (event.type) {
+  switch (event!.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const bookingId = session.metadata?.booking_id;
