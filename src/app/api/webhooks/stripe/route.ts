@@ -4,8 +4,23 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendBookingConfirmationEmail, sendSalonNotificationEmail } from "@/lib/resend";
 import Stripe from "stripe";
 
-// Stripe requires the raw body to verify the webhook signature.
 export const runtime = "nodejs";
+
+function constructEvent(rawBody: string, signature: string): Stripe.Event {
+  const secrets = [
+    process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
+    process.env.STRIPE_WEBHOOK_SECRET,
+  ].filter((s): s is string => Boolean(s));
+
+  for (const secret of secrets) {
+    try {
+      return stripe.webhooks.constructEvent(rawBody, signature, secret);
+    } catch {
+      // try next secret
+    }
+  }
+  throw new Error("No matching webhook secret");
+}
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
@@ -15,20 +30,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
   }
 
-  let event: Stripe.Event | undefined;
+  let event: Stripe.Event;
   try {
-    const secret = process.env.STRIPE_WEBHOOK_SECRET as string;
-    const connectSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET as string;
-
-    for (const s of [connectSecret, secret].filter(Boolean)) {
-      try {
-        event = stripe.webhooks.constructEvent(rawBody, signature, s);
-        break;
-      } catch {
-        // try next secret
-      }
-    }
-    if (!event) throw new Error("No matching webhook secret");
+    event = constructEvent(rawBody, signature);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
@@ -36,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  switch (event!.type) {
+  switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const bookingId = session.metadata?.booking_id;
@@ -73,7 +77,6 @@ export async function POST(req: NextRequest) {
             currency: booking.currency,
           });
         } catch (emailErr) {
-          // Don't fail the webhook over an email issue — the booking is still valid.
           console.error("Failed to send booking emails:", emailErr);
         }
       }
@@ -90,7 +93,6 @@ export async function POST(req: NextRequest) {
     }
 
     case "account.updated": {
-      // Fired for the connected (salon) account when onboarding status changes.
       const account = event.data.object as Stripe.Account;
       await supabase
         .from("business_settings")
