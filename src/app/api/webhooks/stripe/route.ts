@@ -6,6 +6,7 @@ import Stripe from "stripe";
 
 export const runtime = "nodejs";
 
+
 function constructEvent(rawBody: string, signature: string): Stripe.Event {
   const secrets = [
     process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
